@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: corujo
+  SERVICE: corujo-backend
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - uses: "actions/checkout@v3"
+
+      - name: "Authenticate in Google Cloud"
+        uses: "google-github-actions/auth@v0"
+        with:
+          workload_identity_provider: "projects/${{ env.PROJECT_ID }}/locations/global/workloadIdentityPools/pool/providers/github"
+          service_account: "${{ env.PROJECT_ID}}@appspot.gserviceaccount.com"
+          project_id: ${{ env.PROJECT_ID}}
+          export_environment_variables: true
+
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v0"
+
+      - name: Build and Push Container
+        run: |-
+          docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{  github.sha }} .
+          docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{  github.sha }}
+
+      - name: "Deploy Cloud Run"
+        id: "deploy"
+        uses: "google-github-actions/deploy-cloudrun@v0"
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          service: ${{ env.SERVICE }}
+          image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{  github.sha }}
+          secrets: |-
+            DB_HOST=projects/${{ env.PROJECT_ID }}/secrets/DB_HOST,
+            DB_USER=projects/${{ env.PROJECT_ID }}/secrets/DB_USER,
+            DB_DATABASE=projects/${{ env.PROJECT_ID }}/secrets/DB_DATABASE,
+            DB_PASSWORD=projects/${{ env.PROJECT_ID }}/secrets/DB_PASSWORD
