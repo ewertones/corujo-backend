@@ -48,7 +48,7 @@ jobs:
           service: ${{ env.SERVICE }}
           image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{  github.sha }}
           secrets: |-
-            DB_HOST=projects/${{ env.PROJECT_ID }}/secrets/DB_HOST,
-            DB_USER=projects/${{ env.PROJECT_ID }}/secrets/DB_USER,
-            DB_DATABASE=projects/${{ env.PROJECT_ID }}/secrets/DB_DATABASE,
-            DB_PASSWORD=projects/${{ env.PROJECT_ID }}/secrets/DB_PASSWORD
+            DB_HOST=projects/${{ env.PROJECT_ID }}/secrets/DB_HOST/latest,
+            DB_USER=projects/${{ env.PROJECT_ID }}/secrets/DB_USER/latest,
+            DB_DATABASE=projects/${{ env.PROJECT_ID }}/secrets/DB_DATABASE/latest,
+            DB_PASSWORD=projects/${{ env.PROJECT_ID }}/secrets/DB_PASSWORD/latest
