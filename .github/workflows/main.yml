@@ -50,6 +50,6 @@ jobs:
           flags: --allow-unauthenticated
           secrets: |-
             DB_HOST=projects/${{ env.PROJECT_NUMBER }}/secrets/DB_HOST:latest,
-            DB_USER=projects/${{ env.PROJECT_NUMBER }}/secrets/DB_USER:latest,
+            DB_USERNAME=projects/${{ env.PROJECT_NUMBER }}/secrets/DB_USERNAME:latest,
             DB_DATABASE=projects/${{ env.PROJECT_NUMBER }}/secrets/DB_DATABASE:latest,
             DB_PASSWORD=projects/${{ env.PROJECT_NUMBER }}/secrets/DB_PASSWORD:latest
