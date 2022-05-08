@@ -47,7 +47,7 @@ jobs:
           project_id: ${{ env.PROJECT_ID }}
           service: ${{ env.SERVICE }}
           image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{  github.sha }}
-          flags: allow-unauthenticated
+          flags: --allow-unauthenticated
           secrets: |-
             DB_HOST=projects/${{ env.PROJECT_NUMBER }}/secrets/DB_HOST:latest,
             DB_USER=projects/${{ env.PROJECT_NUMBER }}/secrets/DB_USER:latest,
