@@ -1,17 +1,16 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-import crud.crud as crud
-import models.models as models
-import schemas.users as users
+
+from models import models
+from crud import assets as crud_assets, users as crud_users
+from schemas import users, assets, asset_predictions, asset_values
 from database.database import SessionLocal, engine
-from datetime import datetime, timedelta
-from jose import jwt
 
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
-
+# Dependency
 def get_db():
     db = SessionLocal()
     try:
@@ -21,14 +20,28 @@ def get_db():
 
 
 @app.get("/")
-async def read_root():
-    return {"Hello": "World"}
+def health_check(db: Session = Depends(get_db)):
+    return {"data": "Connected"}
 
 
 @app.get("/users/", response_model=list[users.Users])
 def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    users = crud.get_users(db, skip=skip, limit=limit)
+    users = crud_users.get_users(db, skip=skip, limit=limit)
     return users
+
+
+@app.get("/users/{user_id}", response_model=users.Users)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    user = crud_users.get_user(db, user_id)
+    return user
+
+
+@app.post("/users/", response_model=users.Users)
+def create_user(user: users.UsersCreate, db: Session = Depends(get_db)):
+    user = crud_users.get_user_by_email(db, email=user.email)
+    if user:
+        raise HTTPException(status_code=400, detail="Email já cadastrado.")
+    return crud_users.create_user(db, user)
 
 
 # def generate_password_reset_token(email: str) -> str:

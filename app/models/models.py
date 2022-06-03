@@ -1,4 +1,3 @@
-from datetime import datetime
 from sqlalchemy import (
     Boolean,
     Column,
@@ -9,7 +8,6 @@ from sqlalchemy import (
     NUMERIC,
     Table,
 )
-from passlib import hash
 from sqlalchemy.orm import relationship
 from database.database import Base
 
@@ -25,9 +23,6 @@ class Users(Base):
     remember_token = Column(String)
     is_active = Column(Boolean, default=True)
     wallet = relationship("Wallets", back_populates="user", uselist=False)
-
-    def verify_password(self, password):
-        return hash.bcrypt.verify(password, self.hashed_password)
 
 
 wallets_assets = Table(

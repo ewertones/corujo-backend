@@ -1,15 +1,12 @@
-# fastapi
 uvicorn[standard]
 gunicorn
 sqlalchemy
-
-
+fastapi[all]
 psycopg2-binary
+
+# Do I really need these ones?
+# passlib[bcrypt]
 # psycopg2
 # pg8000
-
-passlib[bcrypt]
-fastapi[all]
-pyjwt
-
-python-jose[cryptography]
+# pyjwt
+# python-jose[cryptography]

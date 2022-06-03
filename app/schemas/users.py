@@ -1,5 +1,4 @@
-from datetime import datetime
-from typing import List, Optional
+from datetime import date
 from pydantic import BaseModel
 
 
@@ -7,17 +6,17 @@ class UsersBase(BaseModel):
     email: str
     first_name: str
     last_name: str
-    birthday: datetime
+    birthday: date = date(2000, 1, 1)
 
 
 class UsersCreate(UsersBase):
-    hashed_password: str
+    password: str
 
 
 class Users(UsersBase):
     id: int
-    remember_token: Optional[str] = None
-    is_active: bool
+    remember_token: str | None = None
+    is_active: bool = False
 
     class Config:
         orm_mode = True

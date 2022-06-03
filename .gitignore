@@ -3,3 +3,4 @@ db_config
 venv
 .env
 app/__init__.py
+*.example

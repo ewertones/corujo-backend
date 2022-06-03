@@ -1,27 +1,18 @@
-# class AssetsBase(BaseModel):
-#     id = int
-#     name = str
-#     _type = str
-#     description = str
+from pydantic import BaseModel
 
 
-# class AssetValuesBase(BaseModel):
-#     id = int
-#     asset_id = int
-#     date = datetime
-#     _open = float
-#     close = float
-#     high = float
-#     low = float
-#     volume = float
+class AssetsBase(BaseModel):
+    name: str
+    _type: str
+    description: str
 
 
-# class AssetPredictionsBase(BaseModel):
-#     id = int
-#     asset_id = int
-#     date = datetime
-#     _open = float
-#     close = float
-#     high = float
-#     low = float
-#     volume = float
+class AssetsCreate(AssetsBase):
+    pass
+
+
+class Assets(AssetsBase):
+    id: int
+
+    class Config:
+        orm_mode = True
