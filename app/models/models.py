@@ -21,7 +21,8 @@ class Users(Base):
     last_name = Column(String)
     birthday = Column(Date)
     remember_token = Column(String)
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=False)
+    is_superuser = Column(Boolean, default=False)
     wallet = relationship("Wallets", back_populates="user", uselist=False)
 
 

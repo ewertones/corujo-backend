@@ -39,7 +39,7 @@ def get_asset_values(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.AssetValues).offset(skip).limit(limit).all()
 
 
-def create_asset(db: Session, asset: assets.AssetsCreate):
+def create_asset(db: Session, asset: assets.AssetCreate):
     db_asset = models.Assets(
         name=asset.name,
         _type=asset._type,
@@ -53,7 +53,7 @@ def create_asset(db: Session, asset: assets.AssetsCreate):
 
 def create_asset_prediction(
     db: Session,
-    asset_prediction: asset_predictions.AssetPredictionsCreate,
+    asset_prediction: asset_predictions.AssetPredictionCreate,
     asset_id: int,
 ):
     db_asset_prediction = models.AssetPredictions(
@@ -66,7 +66,7 @@ def create_asset_prediction(
 
 
 def create_asset_value(
-    db: Session, asset_value: asset_values.AssetValuesCreate, asset_id: int
+    db: Session, asset_value: asset_values.AssetValueCreate, asset_id: int
 ):
     db_asset_value = models.AssetValues(**asset_value.dict(), asset_id=asset_id)
     db.add(db_asset_value)

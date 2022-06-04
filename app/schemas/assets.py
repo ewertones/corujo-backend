@@ -1,17 +1,17 @@
 from pydantic import BaseModel
 
 
-class AssetsBase(BaseModel):
+class AssetBase(BaseModel):
     name: str
     _type: str
     description: str
 
 
-class AssetsCreate(AssetsBase):
+class AssetCreate(AssetBase):
     pass
 
 
-class Assets(AssetsBase):
+class Asset(AssetBase):
     id: int
 
     class Config:

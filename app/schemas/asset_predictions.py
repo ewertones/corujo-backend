@@ -2,7 +2,7 @@ from datetime import date
 from pydantic import BaseModel
 
 
-class AssetPredictionsBase(BaseModel):
+class AssetPredictionBase(BaseModel):
     asset_id: int
     date: date
     _open: float
@@ -12,11 +12,11 @@ class AssetPredictionsBase(BaseModel):
     volume: float
 
 
-class AssetPredictionsCreate(AssetPredictionsBase):
+class AssetPredictionCreate(AssetPredictionBase):
     pass
 
 
-class AssetPredictions(AssetPredictionsBase):
+class AssetPrediction(AssetPredictionBase):
     id: int
 
     class Config:

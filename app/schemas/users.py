@@ -1,22 +1,31 @@
 from datetime import date
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
-class UsersBase(BaseModel):
-    email: str
+class UserBase(BaseModel):
+    email: EmailStr
     first_name: str
     last_name: str
-    birthday: date = date(2000, 1, 1)
+    birthday: date
+    remember_token: str | None = None
+    is_active: bool = False
+    is_superuser: bool = False
 
 
-class UsersCreate(UsersBase):
+class UserCreate(UserBase):
     password: str
 
 
-class Users(UsersBase):
+class UserInDBBase(UserBase):
     id: int
-    remember_token: str | None = None
-    is_active: bool = False
 
     class Config:
         orm_mode = True
+
+
+class User(UserInDBBase):
+    pass
+
+
+class UserInDB(UserInDBBase):
+    hashed_password: str
