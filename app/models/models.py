@@ -23,7 +23,9 @@ class Users(Base):
     last_name = Column(String)
     birthday = Column(Date)
     remember_token = Column(String, default=None)
-    is_active = Column(Boolean, default=False)
+    is_active = Column(
+        Boolean, default=True
+    )  # TODO: Change to False after setting up email activation
     is_superuser = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow())
     wallet = relationship("Wallets", back_populates="user", uselist=False)
