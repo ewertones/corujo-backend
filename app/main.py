@@ -3,7 +3,6 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.encoders import jsonable_encoder
 
 from sqlalchemy.orm import Session
 
@@ -33,10 +32,10 @@ app = FastAPI(
     version="0.1.0",
     terms_of_service="https://corujo.com.br/termos",
     contact={
-        "name": "Ewerton Evangelista de Souza",
-        "url": "https://ewerton.com.br",
+        "name": "Ewerton Souza",
         "email": "admin@corujo.com.br",
     },
+    swagger_ui_parameters={"defaultModelsExpandDepth": -1},
 )
 
 origins = [
@@ -120,16 +119,8 @@ async def get_docs():
     return RedirectResponse("docs")
 
 
-@app.post("/user", response_model=users.User)
-def create_user(user: users.UserCreate, db: Session = Depends(get_db)):
-    is_email_being_used = crud_users.get_user_by_email(db, email=user.email)
-    if is_email_being_used:
-        raise HTTPException(status_code=400, detail="Email já cadastrado.")
-    return crud_users.create_user(db, user)
-
-
 @app.post("/token")
-async def login_for_access_token(
+async def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
     user = authenticate_user(db, form_data.username, form_data.password)
@@ -146,15 +137,47 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-# https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-with-patch
-@app.patch("/user/{user_id}", response_model=users.User)
-def patch_user(
-    user_id: int,
+@app.get("/user", response_model=users.User, tags=["user"])
+def get_my_profile(current_user: users.User = Depends(get_current_active_user)):
+    return current_user
+
+
+@app.patch("/user", response_model=users.User, tags=["user"])
+def patch_my_profile(
+    new_info: users.UserUpdate,
     current_user: users.User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    if current_user.id == user_id:
-        pass
+    return crud_users.update_user(db, current_user.id, new_info)
+
+
+@app.delete("/user", tags=["user"])
+def delete_my_profile(
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    return crud_users.delete_user(db, current_user.id)
+
+
+@app.post(
+    "/user",
+    response_model=users.User,
+    status_code=status.HTTP_201_CREATED,
+    tags=["admin"],
+)
+def create_user(
+    user: users.UserCreate,
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.is_superuser:
+        is_email_being_used = crud_users.get_user_by_email(db, email=user.email)
+        if is_email_being_used:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Email já cadastrado."
+            )
+
+        return crud_users.create_user(db, user)
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -162,23 +185,63 @@ def patch_user(
         )
 
 
-@app.delete("/user/{user_id}")
+@app.get("/users", response_model=list[users.User], tags=["admin"])
+def get_users(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.is_superuser:
+        return crud_users.get_users(db, skip, limit)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Você não tem permissão para executar tal ação.",
+        )
+
+
+@app.get("/user/{user_id}", response_model=users.User, tags=["admin"])
+def get_user(
+    user_id: int,
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.is_superuser:
+        return crud_users.get_user(db, user_id)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Você não tem permissão para executar tal ação.",
+        )
+
+
+@app.patch("/user/{user_id}", response_model=users.User, tags=["admin"])
+def patch_user(
+    user_id: int,
+    new_info: users.UserUpdate,
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.is_superuser:
+        return crud_users.update_user(db, user_id, new_info)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Você não tem permissão para executar tal ação.",
+        )
+
+
+@app.delete("/user/{user_id}", tags=["admin"])
 def delete_user(
     user_id: int,
     current_user: users.User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    if (current_user.id == user_id) or current_user.is_superuser:
-        db.delete(current_user)
-        db.commit()
-        return {"ok": True}
+    if current_user.is_superuser:
+        return crud_users.delete_user(db, user_id)
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Você não tem permissão para executar tal ação.",
         )
-
-
-@app.get("/me")
-def get_user_me(current_user: users.User = Depends(get_current_active_user)):
-    return current_user

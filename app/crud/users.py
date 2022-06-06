@@ -1,14 +1,19 @@
 from sqlalchemy.orm import Session
 from models import models
-from schemas import users
 from passlib.context import CryptContext
-from datetime import datetime
+from schemas import users
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def get_user(db: Session, user_id: int):
     return db.query(models.Users).filter(models.Users.id == user_id).first()
+
+
+def delete_user(db: Session, user_id: int):
+    db.query(models.Users).filter(models.Users.id == user_id).delete()
+    db.commit()
+    return {"ok": True}
 
 
 def get_user_by_email(db: Session, email: str):
@@ -35,3 +40,14 @@ def create_user(db: Session, user: users.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def update_user(db: Session, user_id: int, new_info: users.UserUpdate):
+    stored_data = db.get(models.Users, user_id)
+    new_data = new_info.dict(exclude_unset=True)
+    for key, value in new_data.items():
+        setattr(stored_data, key, value)
+    db.add(stored_data)
+    db.commit()
+    db.refresh(stored_data)
+    return stored_data

@@ -13,6 +13,13 @@ class UserCreate(UserBase):
     password: str
 
 
+class UserUpdate(UserBase):
+    email: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    birthday: str | None = None
+
+
 class UserInDBBase(UserBase):
     id: int
     remember_token: str | None = None
