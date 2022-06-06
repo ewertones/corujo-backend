@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from pydantic import BaseModel, EmailStr
 
 
@@ -7,9 +7,6 @@ class UserBase(BaseModel):
     first_name: str
     last_name: str
     birthday: date
-    remember_token: str | None = None
-    is_active: bool = False
-    is_superuser: bool = False
 
 
 class UserCreate(UserBase):
@@ -18,6 +15,10 @@ class UserCreate(UserBase):
 
 class UserInDBBase(UserBase):
     id: int
+    remember_token: str | None = None
+    is_active: bool = False
+    is_superuser: bool = False
+    created_at: datetime
 
     class Config:
         orm_mode = True

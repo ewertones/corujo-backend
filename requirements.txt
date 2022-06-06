@@ -3,10 +3,10 @@ gunicorn
 sqlalchemy
 fastapi[all]
 psycopg2-binary
+python-jose[cryptography]
+passlib[bcrypt]
 
 # Do I really need these ones?
-# passlib[bcrypt]
 # psycopg2
 # pg8000
 # pyjwt
-# python-jose[cryptography]

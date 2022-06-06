@@ -5,9 +5,11 @@ from sqlalchemy import (
     Integer,
     String,
     Date,
+    DateTime,
     NUMERIC,
     Table,
 )
+from datetime import datetime
 from sqlalchemy.orm import relationship
 from database.database import Base
 
@@ -20,9 +22,10 @@ class Users(Base):
     first_name = Column(String)
     last_name = Column(String)
     birthday = Column(Date)
-    remember_token = Column(String)
+    remember_token = Column(String, default=None)
     is_active = Column(Boolean, default=False)
     is_superuser = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow())
     wallet = relationship("Wallets", back_populates="user", uselist=False)
 
 
