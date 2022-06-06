@@ -24,7 +24,18 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 models.Base.metadata.create_all(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-app = FastAPI()
+
+app = FastAPI(
+    title="Corujo",
+    description="A API te permite realizar as mesmas ações que você faria na UI.",
+    version="0.1.0",
+    terms_of_service="https://corujo.com.br/termos",
+    contact={
+        "name": "Ewerton Evangelista de Souza",
+        "url": "https://ewerton.com.br",
+        "email": "admin@corujo.com.br",
+    },
+)
 
 origins = [
     "http://corujo.com.br",
@@ -136,27 +147,3 @@ async def login_for_access_token(
 @app.get("/me")
 def get_user_me(current_user: users.User = Depends(get_current_active_user)):
     return current_user
-
-
-# @app.get("/users", response_model=list[users.User])
-# def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-#     users = crud_users.get_users(db, skip=skip, limit=limit)
-#     return users
-
-
-# @app.get("/users/{user_id}", response_model=users.User)
-# def get_user(user_id: int, db: Session = Depends(get_db)):
-#     user = crud_users.get_user(db, user_id)
-#     return user
-
-# def generate_password_reset_token(email: str) -> str:
-#     delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
-#     now = datetime.utcnow()
-#     expires = now + delta
-#     exp = expires.timestamp()
-#     encoded_jwt = jwt.encode(
-#         {"exp": exp, "nbf": now, "sub": email},
-#         settings.SECRET_KEY,
-#         algorithm="HS256",
-#     )
-#     return encoded_jwt
