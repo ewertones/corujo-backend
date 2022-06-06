@@ -53,5 +53,4 @@ jobs:
             DB_USERNAME=projects/${{ env.PROJECT_NUMBER }}/secrets/DB_USERNAME:latest,
             DB_DATABASE=projects/${{ env.PROJECT_NUMBER }}/secrets/DB_DATABASE:latest,
             DB_PASSWORD=projects/${{ env.PROJECT_NUMBER }}/secrets/DB_PASSWORD:latest,
-            DB_PORT=projects/${{ env.PROJECT_NUMBER }}/secrets/DB_PORT:latest,
             FASTAPI_SECRET_KEY=projects/${{ env.PROJECT_NUMBER }}/secrets/FASTAPI_SECRET_KEY:latest
