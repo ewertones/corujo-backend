@@ -1,7 +1,9 @@
+from re import A
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
 
 from sqlalchemy.orm import Session
 
@@ -142,6 +144,39 @@ async def login_for_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+# https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-with-patch
+@app.patch("/user/{user_id}", response_model=users.User)
+def patch_user(
+    user_id: int,
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.id == user_id:
+        pass
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Você não tem permissão para executar tal ação.",
+        )
+
+
+@app.delete("/user/{user_id}")
+def delete_user(
+    user_id: int,
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    if (current_user.id == user_id) or current_user.is_superuser:
+        db.delete(current_user)
+        db.commit()
+        return {"ok": True}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Você não tem permissão para executar tal ação.",
+        )
 
 
 @app.get("/me")
