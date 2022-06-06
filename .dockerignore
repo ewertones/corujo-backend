@@ -1,5 +1,8 @@
 __pycache__
-db_config
+.git
+.github
 venv
-README.md
 .gitignore
+README.md
+.env
+*.example

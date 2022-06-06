@@ -1,6 +1,5 @@
 __pycache__
-db_config
+.github
 venv
 .env
-app/__init__.py
 *.example

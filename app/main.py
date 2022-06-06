@@ -1,8 +1,9 @@
 from re import A
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_swagger_ui_html
 
 from sqlalchemy.orm import Session
 
@@ -27,15 +28,14 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI(
-    title="Corujo",
-    description="A API te permite realizar as mesmas ações que você faria na UI.",
+    title="Corujo API",
+    description="Te permite realizar as mesmas ações que você faria na UI.",
     version="0.1.0",
     terms_of_service="https://corujo.com.br/termos",
     contact={
         "name": "Ewerton Souza",
         "email": "admin@corujo.com.br",
     },
-    swagger_ui_parameters={"defaultModelsExpandDepth": -1},
 )
 
 origins = [
@@ -114,9 +114,20 @@ async def get_current_active_user(current_user: users.User = Depends(get_current
     return current_user
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse("favicon.ico")
+
+
 @app.get("/")
+@app.get("/docs", include_in_schema=False)
 async def get_docs():
-    return RedirectResponse("docs")
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title,
+        swagger_favicon_url="favicon.ico",
+        swagger_ui_parameters={"defaultModelsExpandDepth": -1},
+    )
 
 
 @app.post("/token")
