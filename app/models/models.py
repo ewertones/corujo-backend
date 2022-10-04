@@ -1,5 +1,4 @@
 from sqlalchemy import (
-    Boolean,
     Column,
     ForeignKey,
     Integer,
@@ -7,78 +6,67 @@ from sqlalchemy import (
     Date,
     DateTime,
     NUMERIC,
-    Table,
+    UniqueConstraint,
 )
-from datetime import datetime
 from sqlalchemy.orm import relationship
-from database.database import Base
+from sqlalchemy.sql import func
+from sqlalchemy.ext.declarative import declarative_base
 
 
-class Users(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    first_name = Column(String)
-    last_name = Column(String)
-    birthday = Column(Date)
-    remember_token = Column(String, default=None)
-    is_active = Column(
-        Boolean, default=True
-    )  # TODO: Change to False after setting up email activation
-    is_superuser = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow())
-    wallet = relationship("Wallets", back_populates="user", uselist=False)
-
-
-wallets_assets = Table(
-    "wallets_assets",
-    Base.metadata,
-    Column("wallet_id", ForeignKey("wallets.id"), primary_key=True),
-    Column("asset_id", ForeignKey("assets.id"), primary_key=True),
-)
-
-
-class Wallets(Base):
-    __tablename__ = "wallets"
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
-    user = relationship("Users", back_populates="wallet")
-    asset = relationship("Assets", secondary=wallets_assets, back_populates="wallet")
+Base = declarative_base()
 
 
 class Assets(Base):
     __tablename__ = "assets"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    _type = Column("type", String)
+    name = Column(String, nullable=False)
+    _type = Column("type", String, nullable=False)
     description = Column(String)
+    symbol = Column(String, nullable=False, unique=True)
+    currency = Column(String, nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     asset_values = relationship("AssetValues")
     asset_predictions = relationship("AssetPredictions")
-    wallet = relationship("Wallets", secondary=wallets_assets, back_populates="asset")
 
 
 class AssetValues(Base):
     __tablename__ = "asset_values"
+
     id = Column(Integer, primary_key=True, index=True)
-    asset_id = Column(Integer, ForeignKey("assets.id"))
+    asset_id = Column(Integer, ForeignKey("assets.id"), nullable=False)
     asset = relationship("Assets", back_populates="asset_values")
-    date = Column(Date)
-    _open = Column("open", NUMERIC(10, 2))
-    close = Column(NUMERIC(10, 2))
-    high = Column(NUMERIC(10, 2))
-    low = Column(NUMERIC(10, 2))
-    volume = Column(NUMERIC(10, 2))
+    date = Column(Date, nullable=False)
+    _open = Column("open", NUMERIC(15, 3), nullable=False)
+    close = Column(NUMERIC(15, 3), nullable=False)
+    high = Column(NUMERIC(15, 3), nullable=False)
+    low = Column(NUMERIC(15, 3), nullable=False)
+    volume = Column(NUMERIC(15, 3))
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    __table_args__ = (UniqueConstraint(asset_id, date, name="av_uidx"),)
 
 
 class AssetPredictions(Base):
     __tablename__ = "asset_predictions"
+
     id = Column(Integer, primary_key=True, index=True)
-    asset_id = Column(Integer, ForeignKey("assets.id"))
+    asset_id = Column(Integer, ForeignKey("assets.id"), nullable=False)
     asset = relationship("Assets", back_populates="asset_predictions")
-    date = Column(Date)
-    _open = Column("open", NUMERIC(10, 2))
-    close = Column(NUMERIC(10, 2))
-    high = Column(NUMERIC(10, 2))
-    low = Column(NUMERIC(10, 2))
-    volume = Column(NUMERIC(10, 2))
+    date = Column(Date, nullable=False)
+    _open = Column("open", NUMERIC(15, 3))
+    close = Column(NUMERIC(15, 3), nullable=False)
+    high = Column(NUMERIC(15, 3))
+    low = Column(NUMERIC(15, 3))
+    volume = Column(NUMERIC(15, 3))
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    __table_args__ = (UniqueConstraint(asset_id, date, name="ap_uidx"),)

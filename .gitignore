@@ -2,4 +2,3 @@ __pycache__
 .github
 venv
 .env
-*.example
