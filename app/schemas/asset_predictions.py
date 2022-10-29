@@ -16,6 +16,10 @@ class AssetPredictionCreate(AssetPredictionBase):
     pass
 
 
+class AssetPredictionResponse(AssetPredictionBase):
+    pass
+
+
 class AssetPrediction(AssetPredictionBase):
     id: int
 

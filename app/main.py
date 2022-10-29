@@ -15,7 +15,7 @@ from crud import assets as crud_assets, users as crud_users
 from schemas import users, assets, asset_predictions, asset_values
 from database.database import SessionLocal, engine
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 import os
 
@@ -36,6 +36,7 @@ app = FastAPI(
         "name": "Ewerton Souza",
         "email": "admin@corujo.com.br",
     },
+    swagger_ui_parameters={"defaultModelsExpandDepth": -1},
 )
 
 origins = [
@@ -126,7 +127,6 @@ async def get_docs():
         openapi_url=app.openapi_url,
         title=app.title,
         swagger_favicon_url="favicon.ico",
-        swagger_ui_parameters={"defaultModelsExpandDepth": -1},
     )
 
 
@@ -148,7 +148,7 @@ async def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get("/user", response_model=users.User, tags=["user"])
+@app.get("/user", response_model=users.UserResponse, tags=["user"])
 def get_my_profile(current_user: users.User = Depends(get_current_active_user)):
     return current_user
 
@@ -196,7 +196,7 @@ def create_user(
         )
 
 
-@app.get("/users", response_model=list[users.User], tags=["admin"])
+@app.get("/users", response_model=list[users.UserResponse], tags=["admin"])
 def get_users(
     skip: int = 0,
     limit: int = 100,
@@ -212,7 +212,7 @@ def get_users(
         )
 
 
-@app.get("/user/{user_id}", response_model=users.User, tags=["admin"])
+@app.get("/user/{user_id}", response_model=users.UserResponse, tags=["admin"])
 def get_user(
     user_id: int,
     current_user: users.User = Depends(get_current_active_user),
@@ -251,6 +251,95 @@ def delete_user(
 ):
     if current_user.is_superuser:
         return crud_users.delete_user(db, user_id)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Você não tem permissão para executar tal ação.",
+        )
+
+
+@app.get("/asset/{asset_id}", response_model=assets.AssetResponse, tags=["user"])
+def get_asset(
+    asset_id: int,
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    return crud_assets.get_asset(db, asset_id)
+
+
+@app.get("/assets", response_model=list[assets.AssetResponse], tags=["user"])
+def get_assets(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    return crud_assets.get_assets(db, skip=skip, limit=limit)
+
+
+@app.get(
+    "/asset/{asset_id}/prediction/{date}",
+    response_model=asset_predictions.AssetPredictionResponse,
+    tags=["user"],
+)
+def get_asset_prediction(
+    asset_id: int,
+    date: date,
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    return crud_assets.get_asset_prediction(db, asset_id, date)
+
+
+@app.get(
+    "/asset/{asset_id}/predictions",
+    response_model=list[asset_predictions.AssetPredictionResponse],
+    tags=["admin"],
+)
+def get_asset_predictions(
+    asset_id: int,
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+):
+    if current_user.is_superuser:
+        return crud_assets.get_asset_predictions(db, asset_id, skip, limit)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Você não tem permissão para executar tal ação.",
+        )
+
+
+@app.get(
+    "/asset/{asset_id}/value/{date}",
+    response_model=asset_values.AssetValueResponse,
+    tags=["user"],
+)
+def get_asset_value(
+    asset_id: int,
+    date: date,
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    return crud_assets.get_asset_value(db, asset_id, date)
+
+
+@app.get(
+    "/asset/{asset_id}/values",
+    response_model=list[asset_predictions.AssetPredictionResponse],
+    tags=["admin"],
+)
+def get_asset_predictions(
+    asset_id: int,
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+):
+    if current_user.is_superuser:
+        return crud_assets.get_asset_values(db, asset_id, skip, limit)
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

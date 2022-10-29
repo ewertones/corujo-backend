@@ -16,6 +16,10 @@ class AssetValueCreate(AssetValueBase):
     pass
 
 
+class AssetValueResponse(AssetValueBase):
+    pass
+
+
 class AssetValue(AssetValueBase):
     id: int
 

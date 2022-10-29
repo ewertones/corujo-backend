@@ -23,8 +23,14 @@ def get_asset_prediction(db: Session, asset_id: int, date: date):
     )
 
 
-def get_asset_predictions(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.AssetPredictions).offset(skip).limit(limit).all()
+def get_asset_predictions(db: Session, asset_id: int, skip: int = 0, limit: int = 100):
+    return (
+        db.query(models.AssetPredictions)
+        .filter(models.AssetPredictions.id == asset_id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 def get_asset_value(db: Session, asset_id: int, date: date):
@@ -35,41 +41,11 @@ def get_asset_value(db: Session, asset_id: int, date: date):
     )
 
 
-def get_asset_values(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.AssetValues).offset(skip).limit(limit).all()
-
-
-def create_asset(db: Session, asset: assets.AssetCreate):
-    db_asset = models.Assets(
-        name=asset.name,
-        _type=asset._type,
-        description=asset.description,
+def get_asset_values(db: Session, asset_id: int, skip: int = 0, limit: int = 100):
+    return (
+        db.query(models.AssetValues)
+        .filter(models.AssetPredictions.id == asset_id)
+        .offset(skip)
+        .limit(limit)
+        .all()
     )
-    db.add(db_asset)
-    db.commit()
-    db.refresh(db_asset)
-    return db_asset
-
-
-def create_asset_prediction(
-    db: Session,
-    asset_prediction: asset_predictions.AssetPredictionCreate,
-    asset_id: int,
-):
-    db_asset_prediction = models.AssetPredictions(
-        **asset_prediction.dict(), asset_id=asset_id
-    )
-    db.add(db_asset_prediction)
-    db.commit()
-    db.refresh(db_asset_prediction)
-    return db_asset_prediction
-
-
-def create_asset_value(
-    db: Session, asset_value: asset_values.AssetValueCreate, asset_id: int
-):
-    db_asset_value = models.AssetValues(**asset_value.dict(), asset_id=asset_id)
-    db.add(db_asset_value)
-    db.commit()
-    db.refresh(db_asset_value)
-    return db_asset_value
