@@ -130,7 +130,7 @@ async def get_docs():
     )
 
 
-@app.post("/token")
+@app.post("/auth")
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
