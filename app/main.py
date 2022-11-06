@@ -174,26 +174,19 @@ def delete_my_profile(
     "/user",
     response_model=users.User,
     status_code=status.HTTP_201_CREATED,
-    tags=["admin"],
+    tags=["user"],
 )
 def create_user(
     user: users.UserCreate,
-    current_user: users.User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    if current_user.is_superuser:
-        is_email_being_used = crud_users.get_user_by_email(db, email=user.email)
-        if is_email_being_used:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Email já cadastrado."
-            )
-
-        return crud_users.create_user(db, user)
-    else:
+    is_email_being_used = crud_users.get_user_by_email(db, email=user.email)
+    if is_email_being_used:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Você não tem permissão para executar tal ação.",
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email já cadastrado."
         )
+
+    return crud_users.create_user(db, user)
 
 
 @app.get("/users", response_model=list[users.UserResponse], tags=["admin"])
