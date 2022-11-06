@@ -71,8 +71,8 @@ def verify_password(password: str, hashed_password: str):
     return pwd_context.verify(password, hashed_password)
 
 
-def authenticate_user(db: Session, username: str, password: str):
-    user = crud_users.get_user_by_email(db, username)
+def authenticate_user(db: Session, email: str, password: str):
+    user = crud_users.get_user_by_email(db, email)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -130,7 +130,7 @@ async def get_docs():
     )
 
 
-@app.post("/auth")
+@app.post("/login")
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
@@ -338,3 +338,9 @@ def get_asset_predictions(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Você não tem permissão para executar tal ação.",
         )
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
