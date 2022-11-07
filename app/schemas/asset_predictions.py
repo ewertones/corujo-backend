@@ -5,7 +5,7 @@ from pydantic import BaseModel
 class AssetPredictionBase(BaseModel):
     asset_id: int
     date: date
-    _open: float
+    _open: float = Field(alias="open")
     close: float
     high: float
     low: float

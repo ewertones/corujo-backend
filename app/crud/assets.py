@@ -9,7 +9,17 @@ def get_asset(db: Session, asset_id: int):
 
 
 def get_assets(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Assets).offset(skip).limit(limit).all()
+    assets = (
+        db.query(models.Assets)
+        .with_entities(
+            models.Assets.name, models.Assets._type, models.Assets.description
+        )
+        .order_by(models.Assets.id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return assets
 
 
 def get_asset_prediction(db: Session, asset_id: int, date: date):

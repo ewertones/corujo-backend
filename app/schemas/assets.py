@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AssetBase(BaseModel):
     name: str
-    _type: str
+    _type: str = Field(alias="type")
     description: str
 
 
