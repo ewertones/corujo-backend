@@ -21,7 +21,17 @@ def get_user_by_email(db: Session, email: str):
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Users).offset(skip).limit(limit).all()
+    users = (
+        db.query(models.Users)
+        .with_entities(
+            models.Users.email, models.Users.first_name, models.Users.last_name
+        )
+        .order_by(models.Users.id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return users
 
 
 def get_password_hash(password: str):
