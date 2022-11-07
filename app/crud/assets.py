@@ -12,7 +12,11 @@ def get_assets(db: Session, skip: int = 0, limit: int = 100):
     assets = (
         db.query(models.Assets)
         .with_entities(
-            models.Assets.name, models.Assets._type, models.Assets.description
+            models.Assets.id,
+            models.Assets.name,
+            models.Assets._type,
+            models.Assets.description,
+            models.Assets.symbol,
         )
         .order_by(models.Assets.id)
         .offset(skip)

@@ -1,11 +1,11 @@
 from datetime import date
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AssetPredictionBase(BaseModel):
     asset_id: int
     date: date
-    _open: float = Field(alias="open")
+    open: float = Field(alias="_open")
     close: float
     high: float
     low: float

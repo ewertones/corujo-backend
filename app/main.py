@@ -255,7 +255,7 @@ def delete_user(
         )
 
 
-@app.get("/asset/{asset_id}", response_model=assets.AssetResponse, tags=["user"])
+@app.get("/asset/{asset_id}", response_model=assets.Asset, tags=["user"])
 def get_asset(
     asset_id: int,
     current_user: users.User = Depends(get_current_active_user),
@@ -264,7 +264,7 @@ def get_asset(
     return crud_assets.get_asset(db, asset_id)
 
 
-@app.get("/assets", response_model=list[assets.AssetResponse], tags=["user"])
+@app.get("/assets", response_model=list[assets.Asset], tags=["user"])
 def get_assets(
     skip: int = 0,
     limit: int = 100,
