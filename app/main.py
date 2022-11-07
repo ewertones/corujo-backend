@@ -150,7 +150,11 @@ async def login(
 
 @app.get("/user", response_model=users.UserResponse, tags=["user"])
 def get_my_profile(current_user: users.User = Depends(get_current_active_user)):
-    return current_user
+    return {
+        "email": current_user.email,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+    }
 
 
 @app.patch("/user", response_model=users.User, tags=["user"])
