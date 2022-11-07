@@ -7,7 +7,14 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def get_user(db: Session, user_id: int):
-    return db.query(models.Users).filter(models.Users.id == user_id).first()
+    return (
+        db.query(models.Users)
+        .with_entities(
+            models.Users.email, models.Users.first_name, models.Users.last_name
+        )
+        .filter(models.Users.id == user_id)
+        .first()
+    )
 
 
 def delete_user(db: Session, user_id: int):
@@ -49,7 +56,12 @@ def create_user(db: Session, user: users.UserCreate):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
+    return {
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "birthday": user.birthday,
+    }
 
 
 def update_user(db: Session, user_id: int, new_info: users.UserUpdate):

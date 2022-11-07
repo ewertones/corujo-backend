@@ -13,6 +13,7 @@ from jose import jwt, JWTError
 from models import models
 from crud import assets as crud_assets, users as crud_users
 from schemas import users, assets, asset_predictions, asset_values
+from schemas.messages import Message, HTTPError, AuthMessage
 from database.database import SessionLocal, engine
 
 from datetime import date, datetime, timedelta
@@ -130,7 +131,17 @@ async def get_docs():
     )
 
 
-@app.post("/login")
+@app.post(
+    "/login",
+    responses={
+        200: {"model": AuthMessage},
+        401: {
+            "model": HTTPError,
+            "description": "This endpoint always raises an error",
+        },
+    },
+    tags=["user"],
+)
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
@@ -175,9 +186,36 @@ def delete_my_profile(
 
 
 @app.post(
+    "/email",
+    responses={
+        200: {"model": Message},
+        409: {
+            "model": HTTPError,
+            "description": "This endpoint always raises an error",
+        },
+    },
+    tags=["user"],
+)
+async def is_email_already_on_db(email: users.UserEmail, db: Session = Depends(get_db)):
+    if is_email_being_used := crud_users.get_user_by_email(db, email=email.email):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Email já cadastrado."
+        )
+    else:
+        return {"message": "Email disponível."}
+
+
+@app.post(
     "/user",
-    response_model=users.User,
-    status_code=status.HTTP_201_CREATED,
+    response_model=users.UserBase,
+    responses={
+        201: {"model": users.UserBase},
+        409: {
+            "model": HTTPError,
+            "description": "Email já cadastrado.",
+        },
+    },
+    status_code=201,
     tags=["user"],
 )
 def create_user(
@@ -187,7 +225,7 @@ def create_user(
     is_email_being_used = crud_users.get_user_by_email(db, email=user.email)
     if is_email_being_used:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Email já cadastrado."
+            status_code=status.HTTP_409_CONFLICT, detail="Email já cadastrado."
         )
 
     return crud_users.create_user(db, user)
@@ -209,14 +247,35 @@ def get_users(
         )
 
 
-@app.get("/user/{user_id}", response_model=users.UserResponse, tags=["admin"])
+@app.get(
+    "/user/{user_id}",
+    response_model=users.UserResponse,
+    responses={
+        200: {"model": users.UserResponse},
+        401: {
+            "model": HTTPError,
+            "description": "Você não tem permissão para executar tal ação.",
+        },
+        404: {
+            "model": HTTPError,
+            "description": "Usuário não encontrado.",
+        },
+    },
+    tags=["admin"],
+)
 def get_user(
     user_id: int,
     current_user: users.User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     if current_user.is_superuser:
-        return crud_users.get_user(db, user_id)
+        if existing_user := crud_users.get_user(db, user_id):
+            return existing_user
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Usuário não encontrado.",
+            )
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -325,10 +384,10 @@ def get_asset_value(
 
 @app.get(
     "/asset/{asset_id}/values",
-    response_model=list[asset_predictions.AssetPredictionResponse],
+    response_model=list[asset_values.AssetValueResponse],
     tags=["admin"],
 )
-def get_asset_predictions(
+def get_asset_values(
     asset_id: int,
     current_user: users.User = Depends(get_current_active_user),
     db: Session = Depends(get_db),

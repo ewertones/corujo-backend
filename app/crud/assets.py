@@ -29,8 +29,13 @@ def get_assets(db: Session, skip: int = 0, limit: int = 100):
 def get_asset_prediction(db: Session, asset_id: int, date: date):
     return (
         db.query(models.AssetPredictions)
+        .with_entities(
+            models.AssetPredictions.asset_id,
+            models.AssetPredictions.date,
+            models.AssetPredictions.close,
+        )
         .filter(
-            models.AssetPredictions.id == asset_id
+            models.AssetPredictions.asset_id == asset_id
             and models.AssetPredictions.date == date
         )
         .first()
@@ -40,7 +45,13 @@ def get_asset_prediction(db: Session, asset_id: int, date: date):
 def get_asset_predictions(db: Session, asset_id: int, skip: int = 0, limit: int = 100):
     return (
         db.query(models.AssetPredictions)
-        .filter(models.AssetPredictions.id == asset_id)
+        .with_entities(
+            models.AssetPredictions.asset_id,
+            models.AssetPredictions.date,
+            models.AssetPredictions.close,
+        )
+        .filter(models.AssetPredictions.asset_id == asset_id)
+        .order_by(models.AssetPredictions.date.desc())
         .offset(skip)
         .limit(limit)
         .all()
@@ -50,7 +61,18 @@ def get_asset_predictions(db: Session, asset_id: int, skip: int = 0, limit: int 
 def get_asset_value(db: Session, asset_id: int, date: date):
     return (
         db.query(models.AssetValues)
-        .filter(models.AssetValues.id == asset_id and models.AssetValues.date == date)
+        .with_entities(
+            models.AssetValues.asset_id,
+            models.AssetValues.date,
+            models.AssetValues._open,
+            models.AssetValues.close,
+            models.AssetValues.high,
+            models.AssetValues.low,
+            models.AssetValues.volume,
+        )
+        .filter(
+            models.AssetValues.asset_id == asset_id and models.AssetValues.date == date
+        )
         .first()
     )
 
@@ -58,7 +80,17 @@ def get_asset_value(db: Session, asset_id: int, date: date):
 def get_asset_values(db: Session, asset_id: int, skip: int = 0, limit: int = 100):
     return (
         db.query(models.AssetValues)
-        .filter(models.AssetPredictions.id == asset_id)
+        .with_entities(
+            models.AssetValues.asset_id,
+            models.AssetValues.date,
+            models.AssetValues._open,
+            models.AssetValues.close,
+            models.AssetValues.high,
+            models.AssetValues.low,
+            models.AssetValues.volume,
+        )
+        .filter(models.AssetValues.asset_id == asset_id)
+        .order_by(models.AssetValues.date.desc())
         .offset(skip)
         .limit(limit)
         .all()
