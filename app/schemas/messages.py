@@ -9,6 +9,7 @@ class Message(BaseModel):
 class AuthMessage(BaseModel):
     access_token: str
     token_type: str
+    valid_until: datetime
 
 
 class HTTPError(BaseModel):

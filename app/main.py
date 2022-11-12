@@ -162,7 +162,11 @@ async def login(
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "valid_until": datetime.now() + access_token_expires,
+    }
 
 
 @app.get("/user", response_model=users.UserResponse, tags=["user"])
