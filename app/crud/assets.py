@@ -95,3 +95,22 @@ def get_asset_values(db: Session, asset_id: int, skip: int = 0, limit: int = 100
         .limit(limit)
         .all()
     )
+
+
+def get_assets_feed(db: Session):
+    return db.execute(
+        """
+            SELECT DISTINCT ON (a.id)
+                   INITCAP(a.name) AS name,
+                   a.symbol,
+                   a.currency,
+                   ROUND(av.close, 2)  AS close,
+                   ROUND(av.close - LAG(av.close, 1) OVER(PARTITION BY a.id ORDER BY av.date), 2) AS diff,
+                   ROUND(100*(av.close - LAG(av.close, 1) OVER(PARTITION BY a.id ORDER BY av.date))/av.close, 1) AS diff_percent,
+                   av.date
+              FROM assets AS a
+              JOIN asset_values av
+                ON a.id = av.asset_id
+            ORDER BY a.id, av.date DESC
+        """
+    ).all()

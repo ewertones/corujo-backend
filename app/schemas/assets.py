@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from datetime import date
 
 
 class AssetBase(BaseModel):
@@ -17,3 +18,13 @@ class Asset(AssetBase):
 
     class Config:
         orm_mode = True
+
+
+class AssetFeed(BaseModel):
+    name: str
+    symbol: str
+    currency: str
+    close: float
+    diff: float
+    diff_percent: float
+    date: date

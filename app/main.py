@@ -409,6 +409,14 @@ def get_asset_values(
         )
 
 
+@app.get("/assets/feed", response_model=list[assets.AssetFeed], tags=["user"])
+def get_assets_feed(
+    current_user: users.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    return crud_assets.get_assets_feed(db)
+
+
 if __name__ == "__main__":
     import uvicorn
 
