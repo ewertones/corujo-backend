@@ -23,6 +23,7 @@ class Asset(AssetBase):
 class AssetFeed(BaseModel):
     name: str
     symbol: str
+    type: str
     currency: str
     close: float
     diff: float
