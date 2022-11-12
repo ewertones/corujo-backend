@@ -1,9 +1,12 @@
 from re import A
 from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.param_functions import Form
+
+from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -12,7 +15,7 @@ from jose import jwt, JWTError
 
 from models import models
 from crud import assets as crud_assets, users as crud_users
-from schemas import users, assets, asset_predictions, asset_values
+from schemas import users, assets, asset_predictions, asset_values, auth
 from schemas.messages import Message, HTTPError, AuthMessage
 from database.database import SessionLocal, engine
 
@@ -23,7 +26,6 @@ import os
 
 FASTAPI_SECRET_KEY = os.getenv("FASTAPI_SECRET_KEY")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
 models.Base.metadata.create_all(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -46,9 +48,9 @@ origins = [
     "http://www.corujo.com.br",
     "https://www.corujo.com.br",
     "http://localhost",
-    "http://localhost:8080",
     "https://localhost",
-    "https://localhost:8080",
+    "http://localhost:3000",
+    "https://localhost:3000",
 ]
 
 app.add_middleware(
@@ -143,16 +145,20 @@ async def get_docs():
     tags=["user"],
 )
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+    form_data: auth.Login,
+    db: Session = Depends(get_db),
 ):
-    user = authenticate_user(db, form_data.username, form_data.password)
+    access_token_expires = (
+        timedelta(days=30) if form_data.remember_me else timedelta(minutes=60)
+    )
+
+    user = authenticate_user(db, form_data.email, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario ou senha incorretos",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
