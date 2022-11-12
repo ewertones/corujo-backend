@@ -19,7 +19,7 @@ from schemas import users, assets, asset_predictions, asset_values, auth
 from schemas.messages import Message, HTTPError, AuthMessage
 from database.database import SessionLocal, engine
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import os
 
@@ -165,7 +165,7 @@ async def login(
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "valid_until": datetime.now() + access_token_expires,
+        "valid_until": datetime.now(timezone.utc) + access_token_expires,
     }
 
 
